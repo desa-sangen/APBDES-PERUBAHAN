@@ -63,6 +63,28 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans">
 
+    <!-- Modal Lock Screen / Password Sederhana -->
+    <div id="lockScreen" class="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-200">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2 class="text-lg font-extrabold text-slate-800 mb-1">PROTEKSI DATA DESA</h2>
+            <p class="text-xs text-slate-500 mb-5">Masukkan PIN Akses Perangkat Desa untuk membuka Draft APBDes Perubahan.</p>
+            
+            <form onsubmit="bukaKunci(event)">
+                <div class="mb-4">
+                    <input type="password" id="pinInput" placeholder="Masukkan PIN (Default: 2026)" autofocus required
+                        class="w-full text-center tracking-widest text-lg font-bold border border-slate-300 rounded-xl py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50">
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl text-sm shadow transition">
+                    Buka Aplikasi
+                </button>
+            </form>
+            <p class="text-[11px] text-slate-400 mt-4">Tip: Default PIN diset <b>2026</b> (bisa diubah di script kode bawah).</p>
+        </div>
+    </div>
+
     <!-- Navbar -->
     <nav class="bg-emerald-800 text-white shadow-md no-print sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
@@ -80,6 +102,9 @@
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                <button onclick="lockApp()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-1" title="Kunci kembali aplikasi">
+                    <i class="fas fa-lock"></i> Kunci
+                </button>
                 <button onclick="resetDataTahunIni()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-1.5" title="Reset data tahun aktif">
                     <i class="fas fa-rotate-left"></i> Reset Tahun Ini
                 </button>
@@ -155,7 +180,7 @@
                     </div>
                 </div>
                 <div class="mt-3 pt-2 border-t border-dashed border-slate-200 text-[11px] text-slate-500 no-print">
-                    <i class="fas fa-check-double text-emerald-600"></i> Klik kolom <b>Perubahan</b> di tabel untuk edit angka secara langsung.
+                    <i class="fas fa-lock text-emerald-600"></i> Dilindungi PIN sederhana untuk keamanan data desa.
                 </div>
             </div>
 
@@ -311,6 +336,34 @@
         const db = getDatabase(app);
         try { getAnalytics(app); } catch (e) {}
 
+        // PIN Rahasia Sederhana (Bisa kamu ubah angka di bawah ini, misal jadi "sangen2026")
+        const MASTER_PIN = "2026";
+
+        window.bukaKunci = function(e) {
+            e.preventDefault();
+            const inputVal = document.getElementById('pinInput').value.trim();
+            if (inputVal === MASTER_PIN) {
+                document.getElementById('lockScreen').classList.add('hidden');
+                sessionStorage.setItem('apbdes_unlocked', 'true');
+            } else {
+                alert('PIN Salah! Silakan coba lagi.');
+                document.getElementById('pinInput').value = '';
+                document.getElementById('pinInput').focus();
+            }
+        };
+
+        window.lockApp = function() {
+            sessionStorage.removeItem('apbdes_unlocked');
+            document.getElementById('lockScreen').classList.remove('hidden');
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinInput').focus();
+        };
+
+        // Cek apakah sudah pernah unlock di sesi browser ini
+        if (sessionStorage.getItem('apbdes_unlocked') === 'true') {
+            document.getElementById('lockScreen').classList.add('hidden');
+        }
+
         // Data lengkap 1 - 93
         const initialExcelData = [
             { id: 1, no: "1", uraian: "PENGHASILAN TETAP KEPALA DESA", penetapan: 42222000, perubahan: 42222000, sumber: "ADD", keterangan: "" },
@@ -408,39 +461,33 @@
             { id: 93, no: "93", uraian: "ADMINISTRASI PBB", penetapan: 1704751, perubahan: 1704751, sumber: "DLL", keterangan: "" }
         ];
 
-        // Helper Format Rupiah Lengkap ("Rp 42.222.000")
         const formatRp = (num) => {
             const val = Number(num) || 0;
             return 'Rp ' + new Intl.NumberFormat('id-ID').format(val);
         };
 
-        // Helper Format Selisih Lengkap ("+Rp 23.000.000" / "(Rp 5.000.000)" / "Rp 0")
         const formatSelisihRp = (diff) => {
             if (diff > 0) return `<span class="text-emerald-600 font-bold">+${formatRp(diff)}</span>`;
             if (diff < 0) return `<span class="text-red-600 font-bold">(${formatRp(Math.abs(diff))})</span>`;
             return `<span class="text-slate-400">Rp 0</span>`;
         };
 
-        // Parse string input "Rp 42.222.000" atau "42222000" menjadi angka murni
         function parseAngkaMurni(str) {
             const digits = String(str || '').replace(/[^\d]/g, '');
             return digits ? parseInt(digits, 10) : 0;
         }
 
-        // Handler saat kolom Perubahan difokuskan (ubah jadi angka polos agar mudah diketik)
         window.onFocusRp = function(inputEl, rawVal) {
             inputEl.value = rawVal === 0 ? '' : rawVal;
             inputEl.select();
         };
 
-        // Handler saat keluar dari kolom Perubahan (simpan & format kembali jadi "Rp ...")
         window.onBlurRp = function(id, inputEl) {
             const angkaBaru = parseAngkaMurni(inputEl.value);
             inputEl.value = formatRp(angkaBaru);
             updateNilaiInline(id, 'perubahan', angkaBaru);
         };
 
-        // Handler tekan Enter pada input Perubahan
         window.onKeyRp = function(e, inputEl) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -448,7 +495,6 @@
             }
         };
 
-        // Live preview Rp pada form tambah baru
         window.updateFormPreview = function() {
             const pen = Number(document.getElementById('in-penetapan').value) || 0;
             const per = Number(document.getElementById('in-perubahan').value) || 0;
@@ -489,7 +535,6 @@
             }
         }
 
-        // State Aplikasi
         let allYearsData = JSON.parse(localStorage.getItem('draft_apbdes_multi_tahun')) || {};
         let activeYear = localStorage.getItem('draft_apbdes_active_year') || "2026";
         let draftData = pastikanNomorTerisi(allYearsData[activeYear] || []).data;
@@ -510,7 +555,6 @@
             }
         }
 
-        // Listener Firebase Identitas Desa
         const metaRef = ref(db, 'draft_apbdes_perubahan/meta');
         onValue(metaRef, (snapshot) => {
             const meta = snapshot.val();
@@ -525,7 +569,6 @@
             }
         });
 
-        // Listener Firebase Data Tahun Anggaran
         const tahunRootRef = ref(db, 'draft_apbdes_perubahan/tahun');
         onValue(tahunRootRef, (snapshot) => {
             const val = snapshot.val();
@@ -665,7 +708,7 @@
                 .then(() => setCloudStatus('online', 'Tersimpan di Cloud'))
                 .catch((err) => {
                     console.error(err);
-                    setCloudStatus('error', 'Gagal Sync (Cek Rules)');
+                    setCloudStatus('error', 'Gagal Sync');
                 });
 
             updateFormNextNumber();
