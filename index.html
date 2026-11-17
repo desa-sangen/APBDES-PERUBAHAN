@@ -178,7 +178,7 @@
                     </div>
                 </div>
                 <div class="mt-3 pt-2 border-t border-dashed border-slate-200 text-[11px] text-slate-500 no-print">
-                    <i class="fas fa-sync text-emerald-600"></i> Sinkronisasi Cloud aktif otomatis.
+                    <i class="fas fa-shield-alt text-emerald-600"></i> Penyimpanan lokal & Cloud sync aktif otomatis.
                 </div>
             </div>
 
@@ -518,11 +518,23 @@
             }
         }
 
+        // Inisialisasi Data Lokal: Jika 2026 kosong, langsung isi dengan 93 data awal otomatis!
         let allYearsData = JSON.parse(localStorage.getItem('draft_apbdes_multi_tahun')) || {};
+        if (!allYearsData["2026"] || allYearsData["2026"].length === 0) {
+            allYearsData["2026"] = JSON.parse(JSON.stringify(initialExcelData));
+            localStorage.setItem('draft_apbdes_multi_tahun', JSON.stringify(allYearsData));
+        }
+
         let activeYear = localStorage.getItem('draft_apbdes_active_year') || "2026";
         let draftData = pastikanNomorTerisi(allYearsData[activeYear] || []).data;
         let currentFilter = 'SEMUA';
         let isInitialLoadDone = false;
+
+        window.muatDataBawaan2026 = function() {
+            allYearsData[activeYear] = JSON.parse(JSON.stringify(initialExcelData));
+            draftData = allYearsData[activeYear];
+            saveData();
+        };
 
         function setCloudStatus(state, text) {
             const el = document.getElementById('cloud-status');
@@ -532,7 +544,7 @@
             } else if (state === 'saving') {
                 el.innerHTML = `<i class="fas fa-sync fa-spin text-amber-300"></i> ${text || 'Menyimpan...'}`;
             } else if (state === 'error') {
-                el.innerHTML = `<i class="fas fa-exclamation-triangle text-red-400"></i> ${text || 'Offline'}`;
+                el.innerHTML = `<i class="fas fa-exclamation-triangle text-amber-300"></i> ${text || 'Mode Lokal'}`;
             } else {
                 el.innerHTML = `<i class="fas fa-circle-notch fa-spin text-amber-300"></i> ${text || 'Memuat...'}`;
             }
@@ -550,17 +562,19 @@
             } else {
                 saveMeta();
             }
-        });
+        }, () => {});
 
         const tahunRootRef = ref(db, 'draft_apbdes_perubahan/tahun');
         onValue(tahunRootRef, (snapshot) => {
             const val = snapshot.val();
-            if (val) {
+            if (val && val["2026"] && val["2026"].length > 0) {
                 allYearsData = val;
                 localStorage.setItem('draft_apbdes_multi_tahun', JSON.stringify(allYearsData));
             } else if (!isInitialLoadDone) {
-                allYearsData["2026"] = JSON.parse(JSON.stringify(initialExcelData));
-                set(ref(db, 'draft_apbdes_perubahan/tahun/2026'), allYearsData["2026"]);
+                if (!allYearsData["2026"] || allYearsData["2026"].length === 0) {
+                    allYearsData["2026"] = JSON.parse(JSON.stringify(initialExcelData));
+                }
+                set(ref(db, 'draft_apbdes_perubahan/tahun/2026'), allYearsData["2026"]).catch(() => {});
             }
             isInitialLoadDone = true;
             
@@ -568,7 +582,7 @@
             draftData = cek.data;
             if (cek.adaPerubahan && draftData.length > 0) {
                 allYearsData[activeYear] = draftData;
-                set(ref(db, `draft_apbdes_perubahan/tahun/${activeYear}`), draftData);
+                set(ref(db, `draft_apbdes_perubahan/tahun/${activeYear}`), draftData).catch(() => {});
             }
 
             setCloudStatus('online', 'Terhubung Cloud');
@@ -576,8 +590,8 @@
             updateFormNextNumber();
             renderApp();
         }, (error) => {
-            console.error("Firebase Error:", error);
-            setCloudStatus('error', 'Mode Offline');
+            console.warn("Firebase offline, menggunakan penyimpanan lokal:", error.message);
+            setCloudStatus('error', 'Mode Lokal (Tersimpan di Browser)');
         });
 
         function initYearOptions() {
@@ -657,7 +671,7 @@
             setCloudStatus('saving', 'Menyimpan Info...');
             set(metaRef, meta)
                 .then(() => setCloudStatus('online', 'Terhubung Cloud'))
-                .catch(() => setCloudStatus('error', 'Gagal Sync'));
+                .catch(() => setCloudStatus('error', 'Tersimpan Lokal'));
         };
 
         function saveData(skipFullRender = false) {
@@ -668,9 +682,8 @@
             setCloudStatus('saving', 'Menyimpan...');
             set(ref(db, `draft_apbdes_perubahan/tahun/${activeYear}`), draftData)
                 .then(() => setCloudStatus('online', 'Tersimpan di Cloud'))
-                .catch((err) => {
-                    console.error(err);
-                    setCloudStatus('error', 'Gagal Sync');
+                .catch(() => {
+                    setCloudStatus('error', 'Tersimpan Lokal');
                 });
 
             updateFormNextNumber();
@@ -843,6 +856,9 @@
                     <tr>
                         <td colspan="8" class="text-center py-10 px-4">
                             <p class="text-slate-500 text-sm mb-3">Belum ada rincian kegiatan untuk <b>Tahun Anggaran ${activeYear}</b>.</p>
+                            <button onclick="muatDataBawaan2026()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow transition">
+                                <i class="fas fa-download mr-1.5"></i> Muat Data Bawaan APBDes (93 Kegiatan)
+                            </button>
                         </td>
                     </tr>`;
                 updateFooterTotals();
