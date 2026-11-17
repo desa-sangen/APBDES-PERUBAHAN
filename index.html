@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRAFT APBDES PERUBAHAN - Desa Sangen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { 
+                background: white !important; 
+                color: black !important;
+                font-size: 10px !important;
+            }
+            .print-shadow-none { 
+                box-shadow: none !important; 
+                border: 1px solid #94a3b8 !important; 
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            th, td {
+                border: 1px solid #64748b !important;
+                padding: 4px 6px !important;
+            }
+            thead {
+                display: table-header-group;
+            }
+            tr {
+                page-break-inside: avoid;
+            }
+            input.inline-no {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                text-align: center;
+                color: black !important;
+            }
+            input.inline-rp {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                text-align: right;
+                font-weight: bold;
+                color: black !important;
+            }
+            input.inline-ket {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-emerald-800 text-white shadow-md no-print sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-file-invoice-dollar text-2xl text-emerald-300"></i>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h1 class="font-bold text-lg leading-tight">DRAFT APBDES PERUBAHAN</h1>
+                        <span id="nav-tahun-badge" class="bg-amber-400 text-emerald-950 font-extrabold text-xs px-2 py-0.5 rounded">TA 2026</span>
+                        <span id="cloud-status" class="bg-emerald-900/80 border border-emerald-500/40 text-emerald-200 text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                            <i class="fas fa-circle-notch fa-spin text-amber-300"></i> Menghubungkan Cloud...
+                        </span>
+                    </div>
+                    <p class="text-xs text-emerald-200">Penyusunan Rancangan Anggaran Belanja & Sumber Dana (Cloud Sync)</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="resetDataTahunIni()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-1.5" title="Reset data tahun aktif">
+                    <i class="fas fa-rotate-left"></i> Reset Tahun Ini
+                </button>
+                <button onclick="exportCSV()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
+                    <i class="fas fa-file-csv"></i> Download CSV
+                </button>
+                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
+                    <i class="fas fa-print"></i> Cetak / PDF
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-5">
+
+        <!-- Header Khusus Cetak -->
+        <div class="hidden print-only text-center mb-4 border-b-2 border-black pb-2">
+            <h2 class="text-sm font-bold uppercase tracking-wide">DRAFT RANCANGAN APBDES PERUBAHAN</h2>
+            <p class="text-xs font-bold uppercase mt-0.5" id="print-judul-desa">PEMERINTAH DESA SANGEN - KEC. KAJORAN, KAB. MAGELANG</p>
+            <p class="text-xs font-semibold" id="print-tahun">TAHUN ANGGARAN 2026</p>
+        </div>
+
+        <!-- Identitas Desa & Pemilih Tahun -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-5 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase">Pemerintah Desa</label>
+                    <input type="text" id="namaDesa" value="DESA SANGEN" onchange="saveMeta()" class="w-full font-bold text-slate-800 border-b border-dashed border-slate-300 focus:border-emerald-600 focus:outline-none py-1.5 text-sm">
+                </div>
+                <div class="md:col-span-4">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase">Kecamatan / Kabupaten</label>
+                    <input type="text" id="wilayahDesa" value="Kec. Kajoran, Kab. Magelang" onchange="saveMeta()" class="w-full font-medium text-slate-700 border-b border-dashed border-slate-300 focus:border-emerald-600 focus:outline-none py-1.5 text-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-bold text-emerald-700 uppercase">
+                        <i class="fas fa-calendar-alt mr-1"></i>Tahun Anggaran
+                    </label>
+                    <div class="flex items-center gap-1 mt-0.5">
+                        <select id="tahunAnggaran" onchange="gantiTahun(this.value)" class="w-full font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-300 rounded-lg px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer">
+                            <!-- Opsi tahun digenerate otomatis 2024 - 2035 -->
+                        </select>
+                    </div>
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase">Kepala Desa (Pengesahan)</label>
+                    <input type="text" id="namaKades" value="SINWAN NUROHMAN" onchange="saveMeta()" class="w-full font-bold text-slate-800 border-b border-dashed border-slate-300 focus:border-emerald-600 focus:outline-none py-1.5 text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- Rekapitulasi Total & Per Sumber Dana -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-5">
+            <!-- Total Keseluruhan -->
+            <div class="lg:col-span-4 bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-600 print-shadow-none flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase flex items-center justify-between">
+                        <span id="card-total-title">Total Belanja TA 2026</span>
+                        <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px]" id="total-item-badge">0 Kegiatan</span>
+                    </h3>
+                    <div class="mt-3 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Total Penetapan:</span>
+                            <span class="font-mono font-semibold text-slate-700 text-sm" id="grand-penetapan">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Total Perubahan:</span>
+                            <span class="font-mono font-extrabold text-emerald-700 text-base" id="grand-perubahan">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-100">
+                            <span class="font-semibold text-slate-600">Selisih Perubahan:</span>
+                            <span class="font-mono font-bold text-sm" id="grand-selisih">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-dashed border-slate-200 text-[11px] text-slate-500 no-print">
+                    <i class="fas fa-check-double text-emerald-600"></i> Klik kolom <b>Perubahan</b> di tabel untuk edit angka secara langsung.
+                </div>
+            </div>
+
+            <!-- Ringkasan Per Sumber Dana -->
+            <div class="lg:col-span-8 bg-white p-4 rounded-xl shadow-sm border border-slate-200 print-shadow-none">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold text-slate-600 uppercase">Rekapitulasi Per Sumber Dana</h3>
+                    <span class="text-[11px] text-slate-400 no-print">Klik sumber dana untuk memfilter tabel</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="sumber-dana-cards">
+                    <!-- Diisi otomatis via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Tambah Kegiatan Baru -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-5 no-print">
+            <h2 class="text-xs font-bold text-slate-700 uppercase mb-3 flex items-center gap-2">
+                <i class="fas fa-plus-circle text-emerald-600 text-sm"></i> Tambah Kegiatan / Rekening Baru (<span id="form-tahun-label">TA 2026</span>)
+            </h2>
+            <form id="formTambah" onsubmit="tambahItem(event)" class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-bold text-emerald-700 mb-1">No *</label>
+                    <input type="text" id="in-no" required class="w-full text-xs font-mono font-bold text-center border border-emerald-300 bg-emerald-50/50 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div class="md:col-span-4">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Uraian / Kegiatan *</label>
+                    <input type="text" id="in-uraian" placeholder="Contoh: Pemeliharaan Gedung Olahraga" required class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Penetapan (Rp)</label>
+                    <input type="number" id="in-penetapan" value="0" min="0" required oninput="updateFormPreview()" class="w-full text-xs font-mono border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <div id="preview-penetapan" class="text-[10px] font-mono text-slate-500 mt-0.5">Rp 0</div>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Perubahan (Rp)</label>
+                    <input type="number" id="in-perubahan" value="0" min="0" required oninput="updateFormPreview()" class="w-full text-xs font-mono border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <div id="preview-perubahan" class="text-[10px] font-mono font-semibold text-emerald-700 mt-0.5">Rp 0</div>
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Sumber</label>
+                    <select id="in-sumber" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="ADD">ADD</option>
+                        <option value="DD" selected>DD</option>
+                        <option value="PAD">PAD</option>
+                        <option value="PBH">PBH</option>
+                        <option value="PBK">PBK</option>
+                        <option value="PBP">PBP</option>
+                        <option value="DLL">DLL</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2 flex items-start pt-5">
+                    <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 px-3 rounded-lg text-xs transition">
+                        + Tambah
+                    </button>
+                </div>
+                <div class="md:col-span-12">
+                    <input type="text" id="in-keterangan" placeholder="Keterangan tambahan / alasan perubahan (Opsional)" class="w-full text-xs border border-slate-200 bg-slate-50 rounded-lg p-2 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+            </form>
+        </div>
+
+        <!-- Bar Pencarian, Urut Nomor & Filter Sumber Dana -->
+        <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 mb-4 no-print">
+            <div class="flex flex-wrap gap-1.5" id="filter-buttons">
+                <button onclick="setFilter('SEMUA')" data-filter="SEMUA" class="filter-btn bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">SEMUA</button>
+                <button onclick="setFilter('ADD')" data-filter="ADD" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">ADD</button>
+                <button onclick="setFilter('PAD')" data-filter="PAD" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PAD</button>
+                <button onclick="setFilter('DD')" data-filter="DD" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">DD</button>
+                <button onclick="setFilter('PBH')" data-filter="PBH" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PBH</button>
+                <button onclick="setFilter('PBK')" data-filter="PBK" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PBK</button>
+                <button onclick="setFilter('PBP')" data-filter="PBP" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PBP</button>
+                <button onclick="setFilter('DLL')" data-filter="DLL" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">DLL</button>
+                <button onclick="setFilter('BERUBAH')" data-filter="BERUBAH" class="filter-btn bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                    <i class="fas fa-exchange-alt mr-1"></i> Hanya Yang Berubah
+                </button>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="rapikanNomorUrut()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap" title="Urutkan ulang nomor 1 sampai akhir secara otomatis">
+                    <i class="fas fa-sort-numeric-down"></i> Urutkan Ulang No (1..N)
+                </button>
+                <div class="relative min-w-[210px]">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari nama kegiatan..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel Draft APBDes Perubahan -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print-shadow-none">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                            <th class="py-2.5 px-3 text-center w-16">NO</th>
+                            <th class="py-2.5 px-3">URAIAN / KEGIATAN</th>
+                            <th class="py-2.5 px-3 text-right w-40">PENETAPAN</th>
+                            <th class="py-2.5 px-3 text-right w-44">PERUBAHAN</th>
+                            <th class="py-2.5 px-3 text-right w-40">BERTAMBAH / (BERKURANG)</th>
+                            <th class="py-2.5 px-3 text-center w-24">SUMBER DANA</th>
+                            <th class="py-2.5 px-3 w-48">KETERANGAN</th>
+                            <th class="py-2.5 px-3 text-center w-16 no-print">AKSI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelBody" class="divide-y divide-slate-200 text-xs">
+                        <!-- Baris diisi lewat JavaScript -->
+                    </tbody>
+                    <tfoot class="bg-slate-100 font-bold text-xs border-t-2 border-slate-300">
+                        <tr>
+                            <td colspan="2" class="py-3 px-3 text-right uppercase text-slate-700" id="footer-label">JUMLAH TOTAL (SEMUA)</td>
+                            <td class="py-3 px-3 text-right font-mono text-slate-800 whitespace-nowrap" id="foot-penetapan">Rp 0</td>
+                            <td class="py-3 px-3 text-right font-mono text-emerald-700 whitespace-nowrap" id="foot-perubahan">Rp 0</td>
+                            <td class="py-3 px-3 text-right font-mono whitespace-nowrap" id="foot-selisih">Rp 0</td>
+                            <td colspan="3" class="py-3 px-3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pengesahan Khusus Print -->
+        <div class="hidden print-only mt-6">
+            <div class="flex justify-end">
+                <div class="text-center w-64 text-xs">
+                    <p id="print-tanggal-ttd">Sangen, ......................... 2026</p>
+                    <p class="font-bold mt-1" id="print-jabatan-kades">KEPALA DESA SANGEN</p>
+                    <div class="h-14"></div>
+                    <p class="font-bold underline uppercase" id="print-nama-kades">SINWAN NUROHMAN</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1Sx2iW6DMqeCz8kahYGoEWMA4E7-PHWE",
+            authDomain: "draft-apbdes-perubahan-sangen.firebaseapp.com",
+            databaseURL: "https://draft-apbdes-perubahan-sangen-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "draft-apbdes-perubahan-sangen",
+            storageBucket: "draft-apbdes-perubahan-sangen.firebasestorage.app",
+            messagingSenderId: "790751715399",
+            appId: "1:790751715399:web:12ab4a8a10fec186899162",
+            measurementId: "G-KT4QXQRE9C"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        try { getAnalytics(app); } catch (e) {}
+
+        // Data lengkap 1 - 93
+        const initialExcelData = [
+            { id: 1, no: "1", uraian: "PENGHASILAN TETAP KEPALA DESA", penetapan: 42222000, perubahan: 42222000, sumber: "ADD", keterangan: "" },
+            { id: 2, no: "2", uraian: "TUNJANGAN KADES", penetapan: 12564000, perubahan: 12564000, sumber: "ADD", keterangan: "" },
+            { id: 3, no: "3", uraian: "TUNJANGAN KINERJA KEPALA DESA", penetapan: 1047000, perubahan: 1047000, sumber: "ADD", keterangan: "" },
+            { id: 4, no: "4", uraian: "THR KEPALA DESA", penetapan: 1047000, perubahan: 1047000, sumber: "ADD", keterangan: "" },
+            { id: 5, no: "5", uraian: "SILTAP SEKDES", penetapan: 29526000, perubahan: 29526000, sumber: "ADD", keterangan: "" },
+            { id: 6, no: "6", uraian: "TUNJANGAN SEKDES", penetapan: 9024000, perubahan: 9024000, sumber: "ADD", keterangan: "" },
+            { id: 7, no: "7", uraian: "THR SEKDES", penetapan: 752000, perubahan: 752000, sumber: "ADD", keterangan: "" },
+            { id: 8, no: "8", uraian: "TUNJANGAN KINERJA SEKDES", penetapan: 752000, perubahan: 752000, sumber: "ADD", keterangan: "" },
+            { id: 9, no: "9", uraian: "SILTAP PERANGKAT DESA", penetapan: 187891200, perubahan: 187891200, sumber: "ADD", keterangan: "" },
+            { id: 10, no: "10", uraian: "TUNJANGAN PERANGKAT DESA", penetapan: 52668000, perubahan: 52668000, sumber: "ADD", keterangan: "" },
+            { id: 11, no: "11", uraian: "TUNJANGAN KINERJA TAHUNAN PERANGKAT DESA", penetapan: 4389000, perubahan: 4389000, sumber: "ADD", keterangan: "" },
+            { id: 12, no: "12", uraian: "THR PERANGKAT", penetapan: 4389000, perubahan: 4389000, sumber: "ADD", keterangan: "" },
+            { id: 13, no: "13", uraian: "BPJS TK KADES", penetapan: 3056880, perubahan: 3056880, sumber: "ADD", keterangan: "" },
+            { id: 14, no: "14", uraian: "BPJS TK SEKDES", penetapan: 1952712, perubahan: 1952712, sumber: "ADD", keterangan: "" },
+            { id: 15, no: "15", uraian: "BPJS TK PERANGKAT", penetapan: 13668984, perubahan: 13668984, sumber: "ADD", keterangan: "" },
+            { id: 16, no: "16", uraian: "HONOR PPKD", penetapan: 17700000, perubahan: 17700000, sumber: "ADD", keterangan: "" },
+            { id: 17, no: "17", uraian: "ATK", penetapan: 7581076, perubahan: 7581076, sumber: "ADD", keterangan: "" },
+            { id: 18, no: "18", uraian: "PERJALANAN DINAS", penetapan: 7000000, perubahan: 7000000, sumber: "ADD", keterangan: "" },
+            { id: 19, no: "19", uraian: "ASOSIASI PEMDES", penetapan: 9000000, perubahan: 9000000, sumber: "ADD", keterangan: "" },
+            { id: 20, no: "20", uraian: "ASOSIASI BPD", penetapan: 2000000, perubahan: 2000000, sumber: "ADD", keterangan: "" },
+            { id: 21, no: "21", uraian: "TAGIHAN LISTRIK", penetapan: 1200000, perubahan: 1200000, sumber: "ADD", keterangan: "" },
+            { id: 22, no: "22", uraian: "TUNJANGAN BPD", penetapan: 26220000, perubahan: 26220000, sumber: "ADD", keterangan: "" },
+            { id: 23, no: "23", uraian: "TUNJANGA KINERJA TAHUNAN BPD", penetapan: 2185000, perubahan: 2185000, sumber: "ADD", keterangan: "" },
+            { id: 24, no: "24", uraian: "THR BPD", penetapan: 2185000, perubahan: 2185000, sumber: "ADD", keterangan: "" },
+            { id: 25, no: "25", uraian: "BPJS TK BPD", penetapan: 680400, perubahan: 680400, sumber: "ADD", keterangan: "" },
+            { id: 26, no: "26", uraian: "INSENTIF RT RW", penetapan: 19200000, perubahan: 19200000, sumber: "ADD", keterangan: "" },
+            { id: 27, no: "27", uraian: "BPJS RT RW", penetapan: 1814400, perubahan: 1814400, sumber: "ADD", keterangan: "" },
+            { id: 28, no: "28", uraian: "MUSDUS", penetapan: 3589000, perubahan: 3589000, sumber: "ADD", keterangan: "" },
+            { id: 29, no: "29", uraian: "RKP DESA", penetapan: 6036000, perubahan: 6036000, sumber: "ADD", keterangan: "" },
+            { id: 30, no: "30", uraian: "PENYUSUNA APBDES", penetapan: 4840000, perubahan: 4840000, sumber: "ADD", keterangan: "" },
+            { id: 31, no: "31", uraian: "CETAK INFOGRAFIS APBDES", penetapan: 500000, perubahan: 500000, sumber: "ADD", keterangan: "" },
+            { id: 32, no: "32", uraian: "BPJS LINMAS", penetapan: 1296000, perubahan: 1296000, sumber: "ADD", keterangan: "" },
+            { id: 33, no: "33", uraian: "KEGIATAN TP PKK", penetapan: 5500000, perubahan: 5500000, sumber: "ADD", keterangan: "" },
+            { id: 34, no: "34", uraian: "TAMBAHAN HASIL TANAH BENGKOK KADES", penetapan: 2000000, perubahan: 2000000, sumber: "PAD", keterangan: "" },
+            { id: 35, no: "35", uraian: "TAMBAHAN HASIL TANAH BENGKOK SEKDES", penetapan: 1000000, perubahan: 1000000, sumber: "PAD", keterangan: "" },
+            { id: 36, no: "36", uraian: "TAMBAHAN HASIL TANAH BENGKOK PERANGKAT", penetapan: 7000000, perubahan: 7000000, sumber: "PAD", keterangan: "" },
+            { id: 37, no: "37", uraian: "PENGADAAN SARPRAS KANTOR (MABELER DAN TV)", penetapan: 16000000, perubahan: 16000000, sumber: "PAD", keterangan: "" },
+            { id: 38, no: "38", uraian: "KOORDINASI PEMDES", penetapan: 6125000, perubahan: 6125000, sumber: "DD", keterangan: "" },
+            { id: 39, no: "39", uraian: "Pemeliharaan Gedung Olahraga", penetapan: 0, perubahan: 23000000, sumber: "DD", keterangan: "Kegiatan Baru Perubahan" },
+            { id: 40, no: "40", uraian: "ID DESA", penetapan: 20000000, perubahan: 20332000, sumber: "DD", keterangan: "" },
+            { id: 41, no: "41", uraian: "MUSRENBANGDES", penetapan: 6000000, perubahan: 6000000, sumber: "DD", keterangan: "" },
+            { id: 42, no: "42", uraian: "HONOR PENGAJAR PAUD", penetapan: 16800000, perubahan: 16800000, sumber: "DD", keterangan: "" },
+            { id: 43, no: "43", uraian: "HONOR PENGAJAR TPQ", penetapan: 3000000, perubahan: 3000000, sumber: "DD", keterangan: "" },
+            { id: 44, no: "44", uraian: "SARANA PRASARANA PAUD", penetapan: 15000000, perubahan: 15000000, sumber: "DD", keterangan: "" },
+            { id: 45, no: "45", uraian: "ILP", penetapan: 14750000, perubahan: 14750000, sumber: "DD", keterangan: "" },
+            { id: 46, no: "46", uraian: "PMT", penetapan: 16200000, perubahan: 16200000, sumber: "DD", keterangan: "" },
+            { id: 47, no: "47", uraian: "PELATIHAN PEMBUATAN PMT", penetapan: 2000000, perubahan: 2000000, sumber: "DD", keterangan: "" },
+            { id: 48, no: "48", uraian: "OPRASIONAL AMBUALANCE DESA", penetapan: 10000000, perubahan: 10000000, sumber: "DD", keterangan: "" },
+            { id: 49, no: "49", uraian: "FORUM KESEHATAN DESA", penetapan: 5475000, perubahan: 5475000, sumber: "DD", keterangan: "" },
+            { id: 50, no: "50", uraian: "PUSKESOS", penetapan: 4800000, perubahan: 4800000, sumber: "DD", keterangan: "" },
+            { id: 51, no: "51", uraian: "KEGIATAN BKB", penetapan: 3200000, perubahan: 3200000, sumber: "DD", keterangan: "" },
+            { id: 52, no: "52", uraian: "HONOR EHDW", penetapan: 1000000, perubahan: 1000000, sumber: "DD", keterangan: "" },
+            { id: 53, no: "53", uraian: "PKTD", penetapan: 3000000, perubahan: 3000000, sumber: "DD", keterangan: "" },
+            { id: 54, no: "54", uraian: "PEMELIHARAAN JALAN", penetapan: 5000000, perubahan: 5000000, sumber: "DD", keterangan: "" },
+            { id: 55, no: "55", uraian: "SALURAN DRAINASE SITAJUK", penetapan: 10000000, perubahan: 10000000, sumber: "DD", keterangan: "" },
+            { id: 56, no: "56", uraian: "PENERANGA LINGKUNGAN", penetapan: 8000000, perubahan: 8000000, sumber: "DD", keterangan: "" },
+            { id: 57, no: "57", uraian: "PROKLIM", penetapan: 10000000, perubahan: 10000000, sumber: "DD", keterangan: "" },
+            { id: 58, no: "58", uraian: "KEGIATAN BANK SAMPAH", penetapan: 10000000, perubahan: 10000000, sumber: "DD", keterangan: "" },
+            { id: 59, no: "59", uraian: "PELATIHAN PENANGGULANGAN BENCANA", penetapan: 7000000, perubahan: 7000000, sumber: "DD", keterangan: "" },
+            { id: 60, no: "60", uraian: "PERINGATAN HUT RI", penetapan: 21068000, perubahan: 21068000, sumber: "DD", keterangan: "" },
+            { id: 61, no: "61", uraian: "PENINGKATAN KAPASITAS KARANG TARUNA (PELATIHAN PEMOTONGAN HEWAN)", penetapan: 4600000, perubahan: 4600000, sumber: "DD", keterangan: "" },
+            { id: 62, no: "62", uraian: "OPRB", penetapan: 2350000, perubahan: 2350000, sumber: "DD", keterangan: "" },
+            { id: 63, no: "63", uraian: "KWT", penetapan: 3805000, perubahan: 3805000, sumber: "DD", keterangan: "" },
+            { id: 64, no: "64", uraian: "KEGIATAN DAWIS", penetapan: 5225200, perubahan: 5225200, sumber: "DD", keterangan: "" },
+            { id: 65, no: "65", uraian: "PENINGKATAN KAPASITAS KDMP", penetapan: 7000000, perubahan: 7000000, sumber: "DD", keterangan: "" },
+            { id: 66, no: "66", uraian: "KEGIATAN TAK TERDUGA", penetapan: 5000000, perubahan: 5000000, sumber: "DD", keterangan: "" },
+            { id: 67, no: "67", uraian: "BLT DANA DESA", penetapan: 7200000, perubahan: 7200000, sumber: "DD", keterangan: "" },
+            { id: 68, no: "68", uraian: "TAGIHAN INTERNET", penetapan: 475194, perubahan: 475194, sumber: "PBH", keterangan: "" },
+            { id: 69, no: "69", uraian: "SPPD BHPR", penetapan: 4000000, perubahan: 4000000, sumber: "PBH", keterangan: "" },
+            { id: 70, no: "70", uraian: "PC DAN MONITOR", penetapan: 9403610, perubahan: 9403610, sumber: "PBH", keterangan: "" },
+            { id: 71, no: "71", uraian: "HONOR OPERATOR SIKEUDES", penetapan: 3600000, perubahan: 3600000, sumber: "PBH", keterangan: "" },
+            { id: 72, no: "72", uraian: "HONOR P3N", penetapan: 500000, perubahan: 500000, sumber: "PBH", keterangan: "" },
+            { id: 73, no: "73", uraian: "PERAWATAN KENDARAAN DINAS", penetapan: 4000000, perubahan: 4000000, sumber: "PBH", keterangan: "" },
+            { id: 74, no: "74", uraian: "PEMELIHARAAN SARPRAS KANTOR DESA", penetapan: 5000000, perubahan: 5000000, sumber: "PBH", keterangan: "" },
+            { id: 75, no: "75", uraian: "INSENTIF PPKBD SUB PPKBD", penetapan: 1200000, perubahan: 1200000, sumber: "PBH", keterangan: "" },
+            { id: 76, no: "76", uraian: "PENGADAAAN SARPRAS KANTOR DESA", penetapan: 12000000, perubahan: 12000000, sumber: "PBH", keterangan: "" },
+            { id: 77, no: "77", uraian: "PAJAK BANK", penetapan: 300000, perubahan: 300000, sumber: "PBH", keterangan: "" },
+            { id: 78, no: "78", uraian: "ADMIN BANK", penetapan: 200000, perubahan: 200000, sumber: "PBH", keterangan: "" },
+            { id: 79, no: "79", uraian: "OPRASIONAL BPD", penetapan: 21375000, perubahan: 21375000, sumber: "PBH", keterangan: "" },
+            { id: 80, no: "80", uraian: "PENGISIAN BPD", penetapan: 5000000, perubahan: 5000000, sumber: "PBH", keterangan: "" },
+            { id: 81, no: "81", uraian: "PEMELIHARAAN GEDUNG OLAHRAGA", penetapan: 7000000, perubahan: 7000000, sumber: "PBH", keterangan: "" },
+            { id: 82, no: "82", uraian: "HONOR OPERATOR ADMINISTRASI KEPENDUDUKAN", penetapan: 1500000, perubahan: 1500000, sumber: "PBH", keterangan: "" },
+            { id: 83, no: "83", uraian: "HONOR PENGELOLA ASET DESA", penetapan: 1200000, perubahan: 1200000, sumber: "PBH", keterangan: "" },
+            { id: 84, no: "84", uraian: "LPMD", penetapan: 2000000, perubahan: 2000000, sumber: "PBH", keterangan: "" },
+            { id: 85, no: "85", uraian: "PENYUSUNAN LPPD", penetapan: 2000000, perubahan: 2000000, sumber: "PBH", keterangan: "" },
+            { id: 86, no: "86", uraian: "PENYUSUNAN LPJ", penetapan: 3500000, perubahan: 3500000, sumber: "PBH", keterangan: "" },
+            { id: 87, no: "87", uraian: "PENGISIAN KADUS SANGEN 2", penetapan: 10100000, perubahan: 10100000, sumber: "PBH", keterangan: "" },
+            { id: 88, no: "88", uraian: "KEGIATAN PENGUKURAN ,PELAKSANAAN DAN SKETSA PETA BATAS DESA", penetapan: 4165000, perubahan: 4165000, sumber: "PBH", keterangan: "" },
+            { id: 89, no: "89", uraian: "INSENTIF LINMAS", penetapan: 4000000, perubahan: 4000000, sumber: "PBH", keterangan: "" },
+            { id: 90, no: "90", uraian: "KUNJUNGAN KERJA TP PKK", penetapan: 2500000, perubahan: 2500000, sumber: "PBH", keterangan: "" },
+            { id: 91, no: "91", uraian: "RABAT PATRAN ( BKK )", penetapan: 75000000, perubahan: 75000000, sumber: "PBK", keterangan: "" },
+            { id: 92, no: "92", uraian: "SALURAN IRIGASI SIBOTO (BANPROV)", penetapan: 100000000, perubahan: 100000000, sumber: "PBP", keterangan: "" },
+            { id: 93, no: "93", uraian: "ADMINISTRASI PBB", penetapan: 1704751, perubahan: 1704751, sumber: "DLL", keterangan: "" }
+        ];
+
+        // Helper Format Rupiah Lengkap ("Rp 42.222.000")
+        const formatRp = (num) => {
+            const val = Number(num) || 0;
+            return 'Rp ' + new Intl.NumberFormat('id-ID').format(val);
+        };
+
+        // Helper Format Selisih Lengkap ("+Rp 23.000.000" / "(Rp 5.000.000)" / "Rp 0")
+        const formatSelisihRp = (diff) => {
+            if (diff > 0) return `<span class="text-emerald-600 font-bold">+${formatRp(diff)}</span>`;
+            if (diff < 0) return `<span class="text-red-600 font-bold">(${formatRp(Math.abs(diff))})</span>`;
+            return `<span class="text-slate-400">Rp 0</span>`;
+        };
+
+        // Parse string input "Rp 42.222.000" atau "42222000" menjadi angka murni
+        function parseAngkaMurni(str) {
+            const digits = String(str || '').replace(/[^\d]/g, '');
+            return digits ? parseInt(digits, 10) : 0;
+        }
+
+        // Handler saat kolom Perubahan difokuskan (ubah jadi angka polos agar mudah diketik)
+        window.onFocusRp = function(inputEl, rawVal) {
+            inputEl.value = rawVal === 0 ? '' : rawVal;
+            inputEl.select();
+        };
+
+        // Handler saat keluar dari kolom Perubahan (simpan & format kembali jadi "Rp ...")
+        window.onBlurRp = function(id, inputEl) {
+            const angkaBaru = parseAngkaMurni(inputEl.value);
+            inputEl.value = formatRp(angkaBaru);
+            updateNilaiInline(id, 'perubahan', angkaBaru);
+        };
+
+        // Handler tekan Enter pada input Perubahan
+        window.onKeyRp = function(e, inputEl) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                inputEl.blur();
+            }
+        };
+
+        // Live preview Rp pada form tambah baru
+        window.updateFormPreview = function() {
+            const pen = Number(document.getElementById('in-penetapan').value) || 0;
+            const per = Number(document.getElementById('in-perubahan').value) || 0;
+            document.getElementById('preview-penetapan').textContent = formatRp(pen);
+            document.getElementById('preview-perubahan').textContent = formatRp(per);
+        };
+
+        function pastikanNomorTerisi(list) {
+            if (!Array.isArray(list)) return { data: [], adaPerubahan: false };
+            let diubah = false;
+            const hasil = list.map((item, idx) => {
+                const noStr = String(item.no || '').trim();
+                if (!noStr) {
+                    diubah = true;
+                    return { ...item, no: String(idx + 1) };
+                }
+                return { ...item, no: noStr };
+            });
+            return { data: hasil, adaPerubahan: diubah };
+        }
+
+        function getNextNumber() {
+            if (!draftData || draftData.length === 0) return "1";
+            let maxNum = 0;
+            draftData.forEach(item => {
+                const parsed = parseInt(String(item.no).replace(/\D/g, ''), 10);
+                if (!isNaN(parsed) && parsed > maxNum) {
+                    maxNum = parsed;
+                }
+            });
+            return String(maxNum > 0 ? maxNum + 1 : draftData.length + 1);
+        }
+
+        function updateFormNextNumber() {
+            const inputNo = document.getElementById('in-no');
+            if (inputNo) {
+                inputNo.value = getNextNumber();
+            }
+        }
+
+        // State Aplikasi
+        let allYearsData = JSON.parse(localStorage.getItem('draft_apbdes_multi_tahun')) || {};
+        let activeYear = localStorage.getItem('draft_apbdes_active_year') || "2026";
+        let draftData = pastikanNomorTerisi(allYearsData[activeYear] || []).data;
+        let currentFilter = 'SEMUA';
+        let isInitialLoadDone = false;
+
+        function setCloudStatus(state, text) {
+            const el = document.getElementById('cloud-status');
+            if (!el) return;
+            if (state === 'online') {
+                el.innerHTML = `<i class="fas fa-cloud-check text-emerald-300"></i> ${text || 'Cloud Aktif'}`;
+            } else if (state === 'saving') {
+                el.innerHTML = `<i class="fas fa-sync fa-spin text-amber-300"></i> ${text || 'Menyimpan...'}`;
+            } else if (state === 'error') {
+                el.innerHTML = `<i class="fas fa-exclamation-triangle text-red-400"></i> ${text || 'Offline / Cek Rules'}`;
+            } else {
+                el.innerHTML = `<i class="fas fa-circle-notch fa-spin text-amber-300"></i> ${text || 'Memuat...'}`;
+            }
+        }
+
+        // Listener Firebase Identitas Desa
+        const metaRef = ref(db, 'draft_apbdes_perubahan/meta');
+        onValue(metaRef, (snapshot) => {
+            const meta = snapshot.val();
+            if (meta) {
+                document.getElementById('namaDesa').value = meta.namaDesa || 'DESA SANGEN';
+                document.getElementById('wilayahDesa').value = meta.wilayahDesa || 'Kec. Kajoran, Kab. Magelang';
+                document.getElementById('namaKades').value = meta.namaKades || 'SINWAN NUROHMAN';
+                localStorage.setItem('draft_apbdes_meta_v2', JSON.stringify(meta));
+                updatePrintHeader();
+            } else {
+                saveMeta();
+            }
+        });
+
+        // Listener Firebase Data Tahun Anggaran
+        const tahunRootRef = ref(db, 'draft_apbdes_perubahan/tahun');
+        onValue(tahunRootRef, (snapshot) => {
+            const val = snapshot.val();
+            if (val) {
+                allYearsData = val;
+                localStorage.setItem('draft_apbdes_multi_tahun', JSON.stringify(allYearsData));
+            } else if (!isInitialLoadDone) {
+                allYearsData["2026"] = JSON.parse(JSON.stringify(initialExcelData));
+                set(ref(db, 'draft_apbdes_perubahan/tahun/2026'), allYearsData["2026"]);
+            }
+            isInitialLoadDone = true;
+            
+            const cek = pastikanNomorTerisi(allYearsData[activeYear] || []);
+            draftData = cek.data;
+            if (cek.adaPerubahan && draftData.length > 0) {
+                allYearsData[activeYear] = draftData;
+                set(ref(db, `draft_apbdes_perubahan/tahun/${activeYear}`), draftData);
+            }
+
+            setCloudStatus('online', 'Terhubung Cloud');
+            initYearOptions();
+            updateFormNextNumber();
+            renderApp();
+        }, (error) => {
+            console.error("Firebase Error:", error);
+            setCloudStatus('error', 'Mode Offline (Lokal)');
+        });
+
+        function initYearOptions() {
+            const selectEl = document.getElementById('tahunAnggaran');
+            selectEl.innerHTML = '';
+            for (let y = 2024; y <= 2035; y++) {
+                const yrStr = String(y);
+                const opt = document.createElement('option');
+                opt.value = yrStr;
+                const count = allYearsData[yrStr] ? allYearsData[yrStr].length : 0;
+                opt.textContent = count > 0 ? `${yrStr} (${count} keg)` : `${yrStr} (Kosong)`;
+                if (yrStr === activeYear) opt.selected = true;
+                selectEl.appendChild(opt);
+            }
+        }
+
+        window.gantiTahun = function(newYear) {
+            activeYear = newYear;
+            localStorage.setItem('draft_apbdes_active_year', activeYear);
+            const cek = pastikanNomorTerisi(allYearsData[activeYear] || []);
+            draftData = cek.data;
+            updateYearLabels();
+            updateFormNextNumber();
+            renderApp();
+        };
+
+        window.salinDariTahunLain = function() {
+            const availableYears = Object.keys(allYearsData).filter(y => y !== activeYear && Array.isArray(allYearsData[y]) && allYearsData[y].length > 0);
+            if (availableYears.length === 0) {
+                draftData = JSON.parse(JSON.stringify(initialExcelData));
+                saveData();
+                return;
+            }
+            const sourceYear = availableYears[availableYears.length - 1];
+            if (confirm(`Salin daftar kegiatan dari Tahun ${sourceYear} ke Tahun ${activeYear}? (Nilai Perubahan tahun ${sourceYear} akan dijadikan Penetapan awal tahun ${activeYear})`)) {
+                draftData = allYearsData[sourceYear].map((item, idx) => ({
+                    ...item,
+                    id: Date.now() + idx,
+                    no: String(item.no || idx + 1),
+                    penetapan: item.perubahan,
+                    perubahan: item.perubahan,
+                    keterangan: ''
+                }));
+                saveData();
+            }
+        };
+
+        window.rapikanNomorUrut = function() {
+            if (draftData.length === 0) return;
+            if (confirm('Urutkan ulang seluruh kolom NO menjadi 1 sampai ' + draftData.length + ' secara berurutan?')) {
+                draftData = draftData.map((item, index) => ({
+                    ...item,
+                    no: String(index + 1)
+                }));
+                saveData();
+            }
+        };
+
+        function updateYearLabels() {
+            document.getElementById('nav-tahun-badge').textContent = `TA ${activeYear}`;
+            document.getElementById('card-total-title').textContent = `Total Belanja TA ${activeYear}`;
+            document.getElementById('form-tahun-label').textContent = `TA ${activeYear}`;
+            updatePrintHeader();
+        }
+
+        function updatePrintHeader() {
+            const namaDesa = document.getElementById('namaDesa').value || 'DESA SANGEN';
+            const wilayahDesa = document.getElementById('wilayahDesa').value || 'Kec. Kajoran, Kab. Magelang';
+            const kades = document.getElementById('namaKades').value || 'SINWAN NUROHMAN';
+
+            document.getElementById('print-judul-desa').textContent = `PEMERINTAH ${namaDesa.toUpperCase()} - ${wilayahDesa.toUpperCase()}`;
+            document.getElementById('print-tahun').textContent = `TAHUN ANGGARAN ${activeYear}`;
+            document.getElementById('print-jabatan-kades').textContent = `KEPALA ${namaDesa.toUpperCase()}`;
+            document.getElementById('print-nama-kades').textContent = kades.toUpperCase();
+            
+            const namaDesaSingkat = namaDesa.replace(/desa\s+/i, '');
+            document.getElementById('print-tanggal-ttd').textContent = `${namaDesaSingkat}, ......................... ${activeYear}`;
+        }
+
+        function loadMetaLocal() {
+            const meta = JSON.parse(localStorage.getItem('draft_apbdes_meta_v2'));
+            if (meta) {
+                document.getElementById('namaDesa').value = meta.namaDesa || 'DESA SANGEN';
+                document.getElementById('wilayahDesa').value = meta.wilayahDesa || 'Kec. Kajoran, Kab. Magelang';
+                document.getElementById('namaKades').value = meta.namaKades || 'SINWAN NUROHMAN';
+            }
+            updateYearLabels();
+        }
+
+        window.saveMeta = function() {
+            const meta = {
+                namaDesa: document.getElementById('namaDesa').value,
+                wilayahDesa: document.getElementById('wilayahDesa').value,
+                namaKades: document.getElementById('namaKades').value
+            };
+            localStorage.setItem('draft_apbdes_meta_v2', JSON.stringify(meta));
+            updatePrintHeader();
+            setCloudStatus('saving', 'Menyimpan Info...');
+            set(metaRef, meta)
+                .then(() => setCloudStatus('online', 'Terhubung Cloud'))
+                .catch(() => setCloudStatus('error', 'Gagal Sync Cloud'));
+        };
+
+        function saveData(skipFullRender = false) {
+            draftData = pastikanNomorTerisi(draftData).data;
+            allYearsData[activeYear] = draftData;
+            localStorage.setItem('draft_apbdes_multi_tahun', JSON.stringify(allYearsData));
+            
+            setCloudStatus('saving', 'Menyimpan...');
+            set(ref(db, `draft_apbdes_perubahan/tahun/${activeYear}`), draftData)
+                .then(() => setCloudStatus('online', 'Tersimpan di Cloud'))
+                .catch((err) => {
+                    console.error(err);
+                    setCloudStatus('error', 'Gagal Sync (Cek Rules)');
+                });
+
+            updateFormNextNumber();
+            if (!skipFullRender) {
+                initYearOptions();
+                renderApp();
+            }
+        }
+
+        window.resetDataTahunIni = function() {
+            if (activeYear === "2026") {
+                if (confirm('Kembalikan data TA 2026 ke isi awal (Nomor 1 - 93) dan timpa di Cloud?')) {
+                    draftData = JSON.parse(JSON.stringify(initialExcelData));
+                    saveData();
+                }
+            } else {
+                if (confirm(`Kosongkan semua data pada TA ${activeYear}?`)) {
+                    draftData = [];
+                    saveData();
+                }
+            }
+        };
+
+        window.updateNilaiInline = function(id, field, val, inputEl = null) {
+            const idx = draftData.findIndex(item => item.id === id);
+            if (idx > -1) {
+                if (field === 'no') {
+                    let cleanNo = String(val || '').trim();
+                    if (!cleanNo) {
+                        cleanNo = String(idx + 1);
+                        if (inputEl) inputEl.value = cleanNo;
+                        alert('Nomor urut tidak boleh kosong untuk keperluan pemeriksaan. Otomatis diisi nomor ' + cleanNo);
+                    }
+                    draftData[idx].no = cleanNo;
+                } else if (field === 'perubahan' || field === 'penetapan') {
+                    draftData[idx][field] = Number(val) || 0;
+                } else {
+                    draftData[idx][field] = val;
+                }
+                
+                const item = draftData[idx];
+                const diff = item.perubahan - item.penetapan;
+                const diffCell = document.getElementById(`diff-${id}`);
+                if (diffCell) diffCell.innerHTML = formatSelisihRp(diff);
+                
+                const rowEl = document.getElementById(`row-${id}`);
+                if (rowEl) {
+                    if (diff !== 0) {
+                        rowEl.classList.add('bg-amber-50/70');
+                    } else {
+                        rowEl.classList.remove('bg-amber-50/70');
+                    }
+                }
+                updateSummaryCards();
+                saveData(true);
+            }
+        };
+
+        window.tambahItem = function(e) {
+            e.preventDefault();
+            let inputNo = document.getElementById('in-no').value.trim();
+            if (!inputNo) {
+                inputNo = getNextNumber();
+            }
+            const newItem = {
+                id: Date.now(),
+                no: inputNo,
+                uraian: document.getElementById('in-uraian').value.trim(),
+                penetapan: Number(document.getElementById('in-penetapan').value) || 0,
+                perubahan: Number(document.getElementById('in-perubahan').value) || 0,
+                sumber: document.getElementById('in-sumber').value,
+                keterangan: document.getElementById('in-keterangan').value.trim()
+            };
+            draftData.push(newItem);
+            document.getElementById('formTambah').reset();
+            updateFormPreview();
+            saveData();
+        };
+
+        window.hapusItem = function(id) {
+            if (confirm('Hapus baris kegiatan ini dari database?')) {
+                draftData = draftData.filter(item => item.id !== id);
+                saveData();
+            }
+        };
+
+        window.setFilter = function(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === filter) {
+                    btn.className = 'filter-btn bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm';
+                } else if (btn.dataset.filter === 'BERUBAH') {
+                    btn.className = 'filter-btn bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold transition';
+                } else {
+                    btn.className = 'filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition';
+                }
+            });
+            renderTable();
+        };
+
+        function updateSummaryCards() {
+            let grandPenetapan = 0;
+            let grandPerubahan = 0;
+            const sumberList = ['ADD', 'PAD', 'DD', 'PBH', 'PBK', 'PBP', 'DLL'];
+            const rekapSumber = {};
+            sumberList.forEach(s => rekapSumber[s] = { penetapan: 0, perubahan: 0 });
+
+            draftData.forEach(item => {
+                grandPenetapan += Number(item.penetapan) || 0;
+                grandPerubahan += Number(item.perubahan) || 0;
+                const s = item.sumber || 'DLL';
+                if (!rekapSumber[s]) rekapSumber[s] = { penetapan: 0, perubahan: 0 };
+                rekapSumber[s].penetapan += Number(item.penetapan) || 0;
+                rekapSumber[s].perubahan += Number(item.perubahan) || 0;
+            });
+
+            document.getElementById('total-item-badge').textContent = `${draftData.length} Kegiatan`;
+            document.getElementById('grand-penetapan').textContent = formatRp(grandPenetapan);
+            document.getElementById('grand-perubahan').textContent = formatRp(grandPerubahan);
+            
+            const grandDiff = grandPerubahan - grandPenetapan;
+            document.getElementById('grand-selisih').innerHTML = grandDiff === 0 
+                ? '<span class="text-slate-400">Rp 0 (Tetap)</span>' 
+                : (grandDiff > 0 ? `<span class="text-emerald-600">+${formatRp(grandDiff)}</span>` : `<span class="text-red-600">(${formatRp(Math.abs(grandDiff))})</span>`);
+
+            const container = document.getElementById('sumber-dana-cards');
+            container.innerHTML = '';
+            sumberList.forEach(s => {
+                const data = rekapSumber[s];
+                const diff = data.perubahan - data.penetapan;
+                const isActive = currentFilter === s;
+                const card = document.createElement('div');
+                card.onclick = () => setFilter(isActive ? 'SEMUA' : s);
+                card.className = `cursor-pointer p-2.5 rounded-lg border transition ${isActive ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-extrabold text-xs text-slate-700">${s}</span>
+                        ${diff !== 0 ? `<span class="text-[10px] font-bold ${diff > 0 ? 'text-emerald-600' : 'text-red-600'}">${diff > 0 ? '+' + formatRp(diff) : '(' + formatRp(Math.abs(diff)) + ')'}</span>` : '<span class="text-[10px] text-slate-400">Tetap</span>'}
+                    </div>
+                    <div class="font-mono font-bold text-xs text-slate-800">${formatRp(data.perubahan)}</div>
+                    <div class="text-[10px] text-slate-400 font-mono">Awal: ${formatRp(data.penetapan)}</div>
+                `;
+                container.appendChild(card);
+            });
+
+            updateFooterTotals();
+        }
+
+        function getFilteredData() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            return draftData.filter(item => {
+                const matchSearch = (item.uraian || '').toLowerCase().includes(keyword) 
+                    || (item.keterangan && item.keterangan.toLowerCase().includes(keyword))
+                    || String(item.no || '').toLowerCase().includes(keyword);
+                if (!matchSearch) return false;
+                if (currentFilter === 'SEMUA') return true;
+                if (currentFilter === 'BERUBAH') return (item.perubahan - item.penetapan) !== 0;
+                return item.sumber === currentFilter;
+            });
+        }
+
+        function updateFooterTotals() {
+            const filtered = getFilteredData();
+            let sumPen = 0, sumPer = 0;
+            filtered.forEach(i => {
+                sumPen += Number(i.penetapan) || 0;
+                sumPer += Number(i.perubahan) || 0;
+            });
+            document.getElementById('footer-label').textContent = `JUMLAH (${currentFilter} - TA ${activeYear})`;
+            document.getElementById('foot-penetapan').textContent = formatRp(sumPen);
+            document.getElementById('foot-perubahan').textContent = formatRp(sumPer);
+            document.getElementById('foot-selisih').innerHTML = formatSelisihRp(sumPer - sumPen);
+        }
+
+        window.renderTable = function() {
+            const tbody = document.getElementById('tabelBody');
+            tbody.innerHTML = '';
+
+            if (draftData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-10 px-4">
+                            <p class="text-slate-500 text-sm mb-3">Belum ada rincian kegiatan untuk <b>Tahun Anggaran ${activeYear}</b>.</p>
+                            <button onclick="salinDariTahunLain()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition inline-flex items-center gap-2">
+                                <i class="fas fa-copy"></i> Salin Daftar Kegiatan dari Tahun Sebelumnya
+                            </button>
+                        </td>
+                    </tr>`;
+                updateFooterTotals();
+                return;
+            }
+
+            const filtered = getFilteredData();
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Tidak ada data kegiatan yang cocok dengan filter/pencarian.</td></tr>`;
+                updateFooterTotals();
+                return;
+            }
+
+            const badgeColors = {
+                'ADD': 'bg-blue-100 text-blue-800',
+                'PAD': 'bg-purple-100 text-purple-800',
+                'DD': 'bg-emerald-100 text-emerald-800',
+                'PBH': 'bg-amber-100 text-amber-800',
+                'PBK': 'bg-cyan-100 text-cyan-800',
+                'PBP': 'bg-indigo-100 text-indigo-800',
+                'DLL': 'bg-slate-200 text-slate-700'
+            };
+
+            filtered.forEach((item, index) => {
+                const nomorTampil = String(item.no || '').trim() || String(index + 1);
+                const penVal = Number(item.penetapan) || 0;
+                const perVal = Number(item.perubahan) || 0;
+                const diff = perVal - penVal;
+                
+                const tr = document.createElement('tr');
+                tr.id = `row-${item.id}`;
+                tr.className = `hover:bg-slate-50 transition ${diff !== 0 ? 'bg-amber-50/70' : ''}`;
+                
+                tr.innerHTML = `
+                    <td class="py-2 px-2 text-center font-mono text-slate-700 font-semibold">
+                        <input type="text" value="${nomorTampil}" required
+                            onchange="updateNilaiInline(${item.id}, 'no', this.value, this)"
+                            class="inline-no w-12 text-center font-mono font-bold text-slate-700 bg-transparent hover:bg-white focus:bg-white border border-transparent hover:border-slate-300 focus:border-emerald-500 rounded px-1 py-0.5 focus:outline-none">
+                    </td>
+                    <td class="py-2 px-3 font-medium text-slate-800">${item.uraian}</td>
+                    <td class="py-2 px-3 text-right font-mono text-slate-700 whitespace-nowrap">${formatRp(penVal)}</td>
+                    <td class="py-2 px-3 text-right whitespace-nowrap">
+                        <input type="text" value="${formatRp(perVal)}"
+                            onfocus="onFocusRp(this, ${perVal})"
+                            onblur="onBlurRp(${item.id}, this)"
+                            onkeydown="onKeyRp(event, this)"
+                            class="inline-rp w-full text-right font-mono font-bold text-slate-800 bg-white border border-slate-300 rounded px-2.5 py-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </td>
+                    <td class="py-2 px-3 text-right font-mono whitespace-nowrap" id="diff-${item.id}">${formatSelisihRp(diff)}</td>
+                    <td class="py-2 px-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColors[item.sumber] || 'bg-slate-100'}">${item.sumber}</span>
+                    </td>
+                    <td class="py-2 px-3">
+                        <input type="text" value="${item.keterangan || ''}" placeholder="..."
+                            onchange="updateNilaiInline(${item.id}, 'keterangan', this.value)"
+                            class="inline-ket w-full text-xs text-slate-600 bg-transparent border-b border-dashed border-slate-300 focus:border-emerald-500 focus:outline-none py-0.5">
+                    </td>
+                    <td class="py-2 px-3 text-center no-print">
+                        <button onclick="hapusItem(${item.id})" class="text-red-400 hover:text-red-600 p-1" title="Hapus">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateFooterTotals();
+        };
+
+        function renderApp() {
+            updateSummaryCards();
+            renderTable();
+        }
+
+        window.exportCSV = function() {
+            const namaDesa = document.getElementById('namaDesa').value.trim() || 'DESA_SANGEN';
+
+            let csvRows = [];
+            csvRows.push([`DRAFT APBDES PERUBAHAN - ${namaDesa.toUpperCase()} TAHUN ANGGARAN ${activeYear}`]);
+            csvRows.push(['NO', 'KETERANGAN', 'PENETAPAN', 'PERUBAHAN', 'BERTAMBAH/BERKURANG', 'SUMBER DANA', 'KETERANGAN']);
+
+            let totPen = 0, totPer = 0;
+
+            draftData.forEach((item, idx) => {
+                const nomorSafe = String(item.no || '').trim() || String(idx + 1);
+                const diff = (Number(item.perubahan) || 0) - (Number(item.penetapan) || 0);
+                totPen += Number(item.penetapan) || 0;
+                totPer += Number(item.perubahan) || 0;
+
+                const cleanUraian = `"${(item.uraian || '').replace(/"/g, '""')}"`;
+                const cleanKet = `"${(item.keterangan || '').replace(/"/g, '""')}"`;
+
+                csvRows.push([
+                    nomorSafe,
+                    cleanUraian,
+                    item.penetapan,
+                    item.perubahan,
+                    diff,
+                    item.sumber,
+                    cleanKet
+                ]);
+            });
+
+            csvRows.push(['', 'JUMLAH TOTAL', totPen, totPer, totPer - totPen, '', '']);
+
+            const csvString = "\uFEFF" + csvRows.map(r => r.join(";")).join("\n");
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `DRAFT_APBDES_PERUBAHAN_${namaDesa.replace(/\s+/g, '_')}_TA_${activeYear}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+
+        // Inisialisasi awal
+        initYearOptions();
+        loadMetaLocal();
+        updateFormNextNumber();
+        updateFormPreview();
+        renderApp();
+    </script>
+</body>
+</html>
