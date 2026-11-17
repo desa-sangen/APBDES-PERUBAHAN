@@ -52,11 +52,12 @@
                 font-weight: bold;
                 color: black !important;
             }
-            input.inline-ket {
+            input.inline-ket, input.inline-sumber {
                 border: none !important;
                 background: transparent !important;
                 padding: 0 !important;
                 color: black !important;
+                text-align: center;
             }
         }
     </style>
@@ -81,7 +82,7 @@
                     Buka Aplikasi
                 </button>
             </form>
-            <p class="text-[11px] text-slate-400 mt-4">Tip: Default PIN diset <b>2026</b> (bisa diubah di script kode bawah).</p>
+            <p class="text-[11px] text-slate-400 mt-4">Tip: Default PIN diset <b>2026</b>.</p>
         </div>
     </div>
 
@@ -104,9 +105,6 @@
             <div class="flex flex-wrap items-center gap-2">
                 <button onclick="lockApp()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-1" title="Kunci kembali aplikasi">
                     <i class="fas fa-lock"></i> Kunci
-                </button>
-                <button onclick="resetDataTahunIni()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded-lg transition flex items-center gap-1.5" title="Reset data tahun aktif">
-                    <i class="fas fa-rotate-left"></i> Reset Tahun Ini
                 </button>
                 <button onclick="exportCSV()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
                     <i class="fas fa-file-csv"></i> Download CSV
@@ -180,7 +178,7 @@
                     </div>
                 </div>
                 <div class="mt-3 pt-2 border-t border-dashed border-slate-200 text-[11px] text-slate-500 no-print">
-                    <i class="fas fa-lock text-emerald-600"></i> Dilindungi PIN sederhana untuk keamanan data desa.
+                    <i class="fas fa-sync text-emerald-600"></i> Sinkronisasi Cloud aktif otomatis.
                 </div>
             </div>
 
@@ -190,7 +188,7 @@
                     <h3 class="text-xs font-bold text-slate-600 uppercase">Rekapitulasi Per Sumber Dana</h3>
                     <span class="text-[11px] text-slate-400 no-print">Klik sumber dana untuk memfilter tabel</span>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="sumber-dana-cards">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-36 overflow-y-auto" id="sumber-dana-cards">
                     <!-- Diisi otomatis via JS -->
                 </div>
             </div>
@@ -206,9 +204,9 @@
                     <label class="block text-[11px] font-bold text-emerald-700 mb-1">No *</label>
                     <input type="text" id="in-no" required class="w-full text-xs font-mono font-bold text-center border border-emerald-300 bg-emerald-50/50 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
-                <div class="md:col-span-4">
+                <div class="md:col-span-3">
                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">Uraian / Kegiatan *</label>
-                    <input type="text" id="in-uraian" placeholder="Contoh: Pemeliharaan Gedung Olahraga" required class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <input type="text" id="in-uraian" placeholder="Contoh: Pemeliharaan GOR" required class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">Penetapan (Rp)</label>
@@ -220,17 +218,9 @@
                     <input type="number" id="in-perubahan" value="0" min="0" required oninput="updateFormPreview()" class="w-full text-xs font-mono border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                     <div id="preview-perubahan" class="text-[10px] font-mono font-semibold text-emerald-700 mt-0.5">Rp 0</div>
                 </div>
-                <div class="md:col-span-1">
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Sumber</label>
-                    <select id="in-sumber" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <option value="ADD">ADD</option>
-                        <option value="DD" selected>DD</option>
-                        <option value="PAD">PAD</option>
-                        <option value="PBH">PBH</option>
-                        <option value="PBK">PBK</option>
-                        <option value="PBP">PBP</option>
-                        <option value="DLL">DLL</option>
-                    </select>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Sumber Dana *</label>
+                    <input type="text" id="in-sumber" placeholder="DD / ADD / BKK / dll" required class="w-full text-xs uppercase font-bold border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
                 <div class="md:col-span-2 flex items-start pt-5">
                     <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 px-3 rounded-lg text-xs transition">
@@ -243,19 +233,15 @@
             </form>
         </div>
 
-        <!-- Bar Pencarian, Urut Nomor & Filter Sumber Dana -->
+        <!-- Bar Pencarian, Urut Nomor & Filter Status -->
         <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 mb-4 no-print">
             <div class="flex flex-wrap gap-1.5" id="filter-buttons">
                 <button onclick="setFilter('SEMUA')" data-filter="SEMUA" class="filter-btn bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">SEMUA</button>
-                <button onclick="setFilter('ADD')" data-filter="ADD" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">ADD</button>
-                <button onclick="setFilter('PAD')" data-filter="PAD" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PAD</button>
-                <button onclick="setFilter('DD')" data-filter="DD" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">DD</button>
-                <button onclick="setFilter('PBH')" data-filter="PBH" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PBH</button>
-                <button onclick="setFilter('PBK')" data-filter="PBK" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PBK</button>
-                <button onclick="setFilter('PBP')" data-filter="PBP" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">PBP</button>
-                <button onclick="setFilter('DLL')" data-filter="DLL" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">DLL</button>
-                <button onclick="setFilter('BERUBAH')" data-filter="BERUBAH" class="filter-btn bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold transition">
-                    <i class="fas fa-exchange-alt mr-1"></i> Hanya Yang Berubah
+                <button onclick="setFilter('BERUBAH')" data-filter="BERUBAH" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                    <i class="fas fa-exchange-alt text-amber-600 mr-1"></i> Hanya Yang Berubah
+                </button>
+                <button onclick="setFilter('TETAP')" data-filter="TETAP" class="filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                    <i class="fas fa-check text-slate-500 mr-1"></i> Hanya Yang Tetap
                 </button>
             </div>
             <div class="flex items-center gap-2">
@@ -280,7 +266,7 @@
                             <th class="py-2.5 px-3 text-right w-40">PENETAPAN</th>
                             <th class="py-2.5 px-3 text-right w-44">PERUBAHAN</th>
                             <th class="py-2.5 px-3 text-right w-40">BERTAMBAH / (BERKURANG)</th>
-                            <th class="py-2.5 px-3 text-center w-24">SUMBER DANA</th>
+                            <th class="py-2.5 px-3 text-center w-28">SUMBER DANA</th>
                             <th class="py-2.5 px-3 w-48">KETERANGAN</th>
                             <th class="py-2.5 px-3 text-center w-16 no-print">AKSI</th>
                         </tr>
@@ -336,7 +322,6 @@
         const db = getDatabase(app);
         try { getAnalytics(app); } catch (e) {}
 
-        // PIN Rahasia Sederhana (Bisa kamu ubah angka di bawah ini, misal jadi "sangen2026")
         const MASTER_PIN = "2026";
 
         window.bukaKunci = function(e) {
@@ -359,12 +344,10 @@
             document.getElementById('pinInput').focus();
         };
 
-        // Cek apakah sudah pernah unlock di sesi browser ini
         if (sessionStorage.getItem('apbdes_unlocked') === 'true') {
             document.getElementById('lockScreen').classList.add('hidden');
         }
 
-        // Data lengkap 1 - 93
         const initialExcelData = [
             { id: 1, no: "1", uraian: "PENGHASILAN TETAP KEPALA DESA", penetapan: 42222000, perubahan: 42222000, sumber: "ADD", keterangan: "" },
             { id: 2, no: "2", uraian: "TUNJANGAN KADES", penetapan: 12564000, perubahan: 12564000, sumber: "ADD", keterangan: "" },
@@ -594,7 +577,7 @@
             renderApp();
         }, (error) => {
             console.error("Firebase Error:", error);
-            setCloudStatus('error', 'Mode Offline (Lokal)');
+            setCloudStatus('error', 'Mode Offline');
         });
 
         function initYearOptions() {
@@ -619,27 +602,6 @@
             updateYearLabels();
             updateFormNextNumber();
             renderApp();
-        };
-
-        window.salinDariTahunLain = function() {
-            const availableYears = Object.keys(allYearsData).filter(y => y !== activeYear && Array.isArray(allYearsData[y]) && allYearsData[y].length > 0);
-            if (availableYears.length === 0) {
-                draftData = JSON.parse(JSON.stringify(initialExcelData));
-                saveData();
-                return;
-            }
-            const sourceYear = availableYears[availableYears.length - 1];
-            if (confirm(`Salin daftar kegiatan dari Tahun ${sourceYear} ke Tahun ${activeYear}? (Nilai Perubahan tahun ${sourceYear} akan dijadikan Penetapan awal tahun ${activeYear})`)) {
-                draftData = allYearsData[sourceYear].map((item, idx) => ({
-                    ...item,
-                    id: Date.now() + idx,
-                    no: String(item.no || idx + 1),
-                    penetapan: item.perubahan,
-                    perubahan: item.perubahan,
-                    keterangan: ''
-                }));
-                saveData();
-            }
         };
 
         window.rapikanNomorUrut = function() {
@@ -695,7 +657,7 @@
             setCloudStatus('saving', 'Menyimpan Info...');
             set(metaRef, meta)
                 .then(() => setCloudStatus('online', 'Terhubung Cloud'))
-                .catch(() => setCloudStatus('error', 'Gagal Sync Cloud'));
+                .catch(() => setCloudStatus('error', 'Gagal Sync'));
         };
 
         function saveData(skipFullRender = false) {
@@ -718,20 +680,6 @@
             }
         }
 
-        window.resetDataTahunIni = function() {
-            if (activeYear === "2026") {
-                if (confirm('Kembalikan data TA 2026 ke isi awal (Nomor 1 - 93) dan timpa di Cloud?')) {
-                    draftData = JSON.parse(JSON.stringify(initialExcelData));
-                    saveData();
-                }
-            } else {
-                if (confirm(`Kosongkan semua data pada TA ${activeYear}?`)) {
-                    draftData = [];
-                    saveData();
-                }
-            }
-        };
-
         window.updateNilaiInline = function(id, field, val, inputEl = null) {
             const idx = draftData.findIndex(item => item.id === id);
             if (idx > -1) {
@@ -740,11 +688,12 @@
                     if (!cleanNo) {
                         cleanNo = String(idx + 1);
                         if (inputEl) inputEl.value = cleanNo;
-                        alert('Nomor urut tidak boleh kosong untuk keperluan pemeriksaan. Otomatis diisi nomor ' + cleanNo);
                     }
                     draftData[idx].no = cleanNo;
                 } else if (field === 'perubahan' || field === 'penetapan') {
                     draftData[idx][field] = Number(val) || 0;
+                } else if (field === 'sumber') {
+                    draftData[idx][field] = String(val || '').toUpperCase().trim();
                 } else {
                     draftData[idx][field] = val;
                 }
@@ -773,13 +722,14 @@
             if (!inputNo) {
                 inputNo = getNextNumber();
             }
+            const sumberInput = document.getElementById('in-sumber').value.toUpperCase().trim() || 'DLL';
             const newItem = {
                 id: Date.now(),
                 no: inputNo,
                 uraian: document.getElementById('in-uraian').value.trim(),
                 penetapan: Number(document.getElementById('in-penetapan').value) || 0,
                 perubahan: Number(document.getElementById('in-perubahan').value) || 0,
-                sumber: document.getElementById('in-sumber').value,
+                sumber: sumberInput,
                 keterangan: document.getElementById('in-keterangan').value.trim()
             };
             draftData.push(newItem);
@@ -800,8 +750,6 @@
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 if (btn.dataset.filter === filter) {
                     btn.className = 'filter-btn bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm';
-                } else if (btn.dataset.filter === 'BERUBAH') {
-                    btn.className = 'filter-btn bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold transition';
                 } else {
                     btn.className = 'filter-btn bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition';
                 }
@@ -812,14 +760,12 @@
         function updateSummaryCards() {
             let grandPenetapan = 0;
             let grandPerubahan = 0;
-            const sumberList = ['ADD', 'PAD', 'DD', 'PBH', 'PBK', 'PBP', 'DLL'];
             const rekapSumber = {};
-            sumberList.forEach(s => rekapSumber[s] = { penetapan: 0, perubahan: 0 });
 
             draftData.forEach(item => {
                 grandPenetapan += Number(item.penetapan) || 0;
                 grandPerubahan += Number(item.perubahan) || 0;
-                const s = item.sumber || 'DLL';
+                const s = (item.sumber || 'DLL').toUpperCase().trim();
                 if (!rekapSumber[s]) rekapSumber[s] = { penetapan: 0, perubahan: 0 };
                 rekapSumber[s].penetapan += Number(item.penetapan) || 0;
                 rekapSumber[s].perubahan += Number(item.perubahan) || 0;
@@ -836,7 +782,8 @@
 
             const container = document.getElementById('sumber-dana-cards');
             container.innerHTML = '';
-            sumberList.forEach(s => {
+            
+            Object.keys(rekapSumber).forEach(s => {
                 const data = rekapSumber[s];
                 const diff = data.perubahan - data.penetapan;
                 const isActive = currentFilter === s;
@@ -862,11 +809,15 @@
             return draftData.filter(item => {
                 const matchSearch = (item.uraian || '').toLowerCase().includes(keyword) 
                     || (item.keterangan && item.keterangan.toLowerCase().includes(keyword))
-                    || String(item.no || '').toLowerCase().includes(keyword);
+                    || String(item.no || '').toLowerCase().includes(keyword)
+                    || (item.sumber || '').toLowerCase().includes(keyword);
                 if (!matchSearch) return false;
+                
+                const diff = (Number(item.perubahan) || 0) - (Number(item.penetapan) || 0);
                 if (currentFilter === 'SEMUA') return true;
-                if (currentFilter === 'BERUBAH') return (item.perubahan - item.penetapan) !== 0;
-                return item.sumber === currentFilter;
+                if (currentFilter === 'BERUBAH') return diff !== 0;
+                if (currentFilter === 'TETAP') return diff === 0;
+                return (item.sumber || '').toUpperCase() === currentFilter;
             });
         }
 
@@ -892,9 +843,6 @@
                     <tr>
                         <td colspan="8" class="text-center py-10 px-4">
                             <p class="text-slate-500 text-sm mb-3">Belum ada rincian kegiatan untuk <b>Tahun Anggaran ${activeYear}</b>.</p>
-                            <button onclick="salinDariTahunLain()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition inline-flex items-center gap-2">
-                                <i class="fas fa-copy"></i> Salin Daftar Kegiatan dari Tahun Sebelumnya
-                            </button>
                         </td>
                     </tr>`;
                 updateFooterTotals();
@@ -904,20 +852,10 @@
             const filtered = getFilteredData();
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Tidak ada data kegiatan yang cocok dengan filter/pencarian.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Tidak ada data kegiatan yang cocok dengan filter / pencarian.</td></tr>`;
                 updateFooterTotals();
                 return;
             }
-
-            const badgeColors = {
-                'ADD': 'bg-blue-100 text-blue-800',
-                'PAD': 'bg-purple-100 text-purple-800',
-                'DD': 'bg-emerald-100 text-emerald-800',
-                'PBH': 'bg-amber-100 text-amber-800',
-                'PBK': 'bg-cyan-100 text-cyan-800',
-                'PBP': 'bg-indigo-100 text-indigo-800',
-                'DLL': 'bg-slate-200 text-slate-700'
-            };
 
             filtered.forEach((item, index) => {
                 const nomorTampil = String(item.no || '').trim() || String(index + 1);
@@ -946,7 +884,9 @@
                     </td>
                     <td class="py-2 px-3 text-right font-mono whitespace-nowrap" id="diff-${item.id}">${formatSelisihRp(diff)}</td>
                     <td class="py-2 px-3 text-center">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColors[item.sumber] || 'bg-slate-100'}">${item.sumber}</span>
+                        <input type="text" value="${item.sumber || 'DLL'}"
+                            onchange="updateNilaiInline(${item.id}, 'sumber', this.value)"
+                            class="inline-sumber w-full font-bold text-xs uppercase bg-transparent border-b border-dashed border-slate-300 focus:border-emerald-500 focus:outline-none py-0.5">
                     </td>
                     <td class="py-2 px-3">
                         <input type="text" value="${item.keterangan || ''}" placeholder="..."
@@ -975,31 +915,34 @@
 
             let csvRows = [];
             csvRows.push([`DRAFT APBDES PERUBAHAN - ${namaDesa.toUpperCase()} TAHUN ANGGARAN ${activeYear}`]);
-            csvRows.push(['NO', 'KETERANGAN', 'PENETAPAN', 'PERUBAHAN', 'BERTAMBAH/BERKURANG', 'SUMBER DANA', 'KETERANGAN']);
+            csvRows.push(['NO', 'URAIAN / KEGIATAN', 'PENETAPAN', 'PERUBAHAN', 'BERTAMBAH / BERKURANG', 'SUMBER DANA', 'KETERANGAN']);
 
             let totPen = 0, totPer = 0;
 
             draftData.forEach((item, idx) => {
                 const nomorSafe = String(item.no || '').trim() || String(idx + 1);
-                const diff = (Number(item.perubahan) || 0) - (Number(item.penetapan) || 0);
-                totPen += Number(item.penetapan) || 0;
-                totPer += Number(item.perubahan) || 0;
+                const pen = Number(item.penetapan) || 0;
+                const per = Number(item.perubahan) || 0;
+                const diff = per - pen;
+                totPen += pen;
+                totPer += per;
 
                 const cleanUraian = `"${(item.uraian || '').replace(/"/g, '""')}"`;
                 const cleanKet = `"${(item.keterangan || '').replace(/"/g, '""')}"`;
+                const sumber = item.sumber || 'DLL';
 
                 csvRows.push([
                     nomorSafe,
                     cleanUraian,
-                    item.penetapan,
-                    item.perubahan,
-                    diff,
-                    item.sumber,
+                    `"${formatRp(pen)}"`,
+                    `"${formatRp(per)}"`,
+                    `"${diff >= 0 ? '+' + formatRp(diff) : '(' + formatRp(Math.abs(diff)) + ')'}"`,
+                    sumber,
                     cleanKet
                 ]);
             });
 
-            csvRows.push(['', 'JUMLAH TOTAL', totPen, totPer, totPer - totPen, '', '']);
+            csvRows.push(['', 'JUMLAH TOTAL', `"${formatRp(totPen)}"`, `"${formatRp(totPer)}"`, `"${(totPer - totPen) >= 0 ? '+' + formatRp(totPer - totPen) : '(' + formatRp(Math.abs(totPer - totPen)) + ')'}"`, '', '']);
 
             const csvString = "\uFEFF" + csvRows.map(r => r.join(";")).join("\n");
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
